@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chappie - Vibe Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="connection-status">Connecting...</div>
+    <ul id="messages">
+        <!-- Chat messages will appear here -->
+    </ul>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" placeholder="Type a message..." /><button>Send</button>
+    </form>
+
+    <!-- Include the Socket.IO client library -->
+    <script src="/socket.io/socket.io.min.js"></script>
+
+    <script src="client.js"></script>
+</body>
+</html>
