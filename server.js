@@ -1,122 +1,138 @@
+const path = require('path');
 const express = require('express');
 const http = require('http');
-const { Server } = require("socket.io"); // Import the Server class from socket.io
+const { Server } = require("socket.io");
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
 const he = require('he'); // For HTML entity encoding (sanitization)
 
-const PORT = process.env.PORT || 3000; // Use port from environment variable or default to 3000
-// !IMPORTANT #TODO: Replace this with your actual Vercel frontend URL once deployed !!
-//    For local testing, you might allow your local frontend server (e.g., http://localhost:5500 if using Live Server)
+const PORT = process.env.PORT || 3000;
+
+// Configuration
 const allowedOrigins = [
-    "http://localhost:5500", // Example for VS Code Live Server
-    "http://127.0.0.1:5500",
-    "https://your-vercel-app-name.vercel.app" // Placeholder for your frontend
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://your-vercel-app-name.vercel.app" // Replace with your actual frontend URL when deployed
 ];
+
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        // or if origin is in the allowedOrigins list
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ["GET", "POST"] // Allow only necessary methods
+    methods: ["GET", "POST"]
 };
 
-const messageRateLimiter = rateLimit({
-	windowMs: 15 * 1000, // 15 seconds
-	max: 10, // Limit each IP to 10 messages per windowMs
-	message: 'Too many messages sent from this IP, please try again after 15 seconds',
-    // keyGenerator is needed for socket.io middleware context
-    keyGenerator: (req, res) => req.ip // Use IP address for tracking
-});
-
+// Express setup
 const app = express();
-app.use(cors(corsOptions)); // Enable CORS for Express routes (good practice, though Socket.IO needs its own)
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Route handling
 app.get('/', (req, res) => {
-  res.send('Chat server is running!');
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
+// HTTP server creation
 const server = http.createServer(app);
 
+// Socket.IO setup
 const io = new Server(server, {
-    cors: corsOptions, // Apply CORS options to Socket.IO
-    maxHttpBufferSize: 1e4 // Limit message size (~10KB) - Adjust as needed
+    cors: corsOptions,
+    maxHttpBufferSize: 1e4 // 10KB message size limit
 });
 
-// Middleware for Socket.IO rate limiting (applied per connection attempt *and* per event)
-// We need to adapt express-rate-limit slightly for Socket.IO context
-const socketRateLimiter = rateLimit({
-	windowMs: 15 * 1000, // 15 seconds
-	max: 10, // Limit each IP to 10 events per windowMs
-	message: 'Too many requests, please try again later.',
-    // Use socket.handshake.address for IP in Socket.IO context
-    keyGenerator: (req, res) => req.handshake.address
-});
+// Rate limiter for Socket.IO
+const connectedClients = new Map();
+const RATE_LIMIT = {
+    windowMs: 5 * 1000, // 5 seconds
+    maxMessages: 5      // max messages per window
+};
+
+function isRateLimited(clientId) {
+    const now = Date.now();
+    const clientData = connectedClients.get(clientId) || { messages: [], lastReset: now };
+    
+    // Clean up old messages and check rate limit
+    clientData.messages = clientData.messages.filter(time => now - time < RATE_LIMIT.windowMs);
+    const isLimited = clientData.messages.length >= RATE_LIMIT.maxMessages;
+    
+    if (!isLimited) {
+        clientData.messages.push(now);
+        connectedClients.set(clientId, clientData);
+    }
+    
+    return isLimited;
+}
 
 io.use((socket, next) => {
-    // Wrap the express-rate-limit middleware for Socket.IO
-    // Need to mock req/res objects slightly
-    const mockReq = { ip: socket.handshake.address, // Get IP from socket handshake
-                     headers: socket.request.headers };
-    const mockRes = { /* Res object methods not really needed here */ };
-
-    socketRateLimiter(mockReq, mockRes, (err) => {
-        if (err) {
-            console.warn(`Rate limit exceeded for IP: ${socket.handshake.address}`);
-            return next(new Error('Rate limit exceeded')); // Send error to client
-        }
-        next(); // Proceed if not rate limited
+    // Initialize rate limiting for this socket
+    connectedClients.set(socket.id, {
+        messages: [],
+        lastReset: Date.now()
     });
+    next();
 });
 
-
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id} from IP: ${socket.handshake.address}`);
+    console.log(`Client connected: ${socket.id} from IP: ${socket.handshake.address}`);
 
-    // Handle disconnection
-    socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-    });
-
-    // Handle incoming chat messages
     socket.on('chat message', (msg) => {
-        // Basic validation & sanitization
+        // Rate limiting check
+        if (isRateLimited(socket.id)) {
+            console.warn(`Rate limit exceeded for socket: ${socket.id}`);
+            socket.emit('error', { 
+                code: 'RATE_LIMIT_EXCEEDED',
+                message: 'Rate limit exceeded. Please wait before sending more messages.' 
+            });
+            return;
+        }
+        
+        // Message validation
+        const maxLength = 500;
         if (typeof msg !== 'string' || msg.trim() === '') {
             console.log(`Invalid message received from ${socket.id}:`, msg);
-            return; // Ignore empty or non-string messages
+            return;
         }
-
-        // Check length (Socket.IO maxHttpBufferSize offers primary protection)
-        const maxLength = 500; // Define a reasonable max length
+        
         if (msg.length > maxLength) {
             console.log(`Message too long from ${socket.id}. Length: ${msg.length}`);
-            socket.emit('error', 'Message too long.');
-            return; // Reject message
+            socket.emit('error', { message: 'Message too long.' });
+            return;
         }
 
-        const sanitizedMsg = he.encode(msg.trim()); // Encode HTML entities
+        // Process valid message
+        const trimmedMsg = msg.trim();
+        
+        // Sanitize the message content with minimal processing
+        // Just store special characters directly, but filter out html tags
+        const sanitizedMsg = trimmedMsg
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        
         console.log(`Message from ${socket.id}: ${sanitizedMsg}`);
-
-        // Broadcast the sanitized message to ALL connected clients, including the sender
         io.emit('chat message', sanitizedMsg);
     });
 
-     // Error handling for the specific socket
-     socket.on("error", (err) => {
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        connectedClients.delete(socket.id);
+        console.log(`Client disconnected: ${socket.id}`);
+    });
+
+    // Error handling
+    socket.on("error", (err) => {
         console.error(`Socket Error (${socket.id}): ${err.message}`);
-        if (err && err.message === "Rate limit exceeded") {
-             socket.emit("error", "You are sending messages too fast. Please slow down.");
-             socket.disconnect(true);
-         }
+        if (err?.data?.code === "RATE_LIMIT_EXCEEDED") {
+            socket.emit("error", { message: "You are sending messages too fast. Please slow down." });
+            socket.disconnect(true);
+        }
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`Server vibing on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chappie - A real-time chat application">
+    <meta name="theme-color" content="#f4f4f4">
+    <title>Chappie - Real-time Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="connection-status" aria-live="polite">Connecting...</div>
+    <ul id="messages" aria-label="Chat messages"></ul>
+    <form id="form">
+        <input id="input" autocomplete="off" placeholder="Type a message..." aria-label="Type your message" />
+        <button type="submit" aria-label="Send message">Send</button>
+    </form>
+
+    <!-- Socket.IO client library -->
+    <script src="/socket.io/socket.io.min.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
