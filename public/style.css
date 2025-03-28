@@ -1,110 +1,118 @@
 /* Base styles */
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #f4f4f4;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f4f4f4;
 }
 
 /* Messages container */
 #messages {
-    list-style-type: none;
-    margin: 0;
-    padding: 15px;
-    flex-grow: 1;
-    overflow-y: auto;
-    background-color: #ffffff;
-    border-bottom: 1px solid #ddd;
+  list-style-type: none;
+  margin: 0;
+  padding: 15px;
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
 }
 
 /* Message items */
-#messages > li {
-    padding: 0.5rem 1rem;
-    margin-bottom: 0.5rem;
-    background-color: #e6eaf0;
-    border-radius: 10px;
-    word-wrap: break-word;
+#messages>li {
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  background-color: #e6eaf0;
+  border-radius: 10px;
+  word-wrap: break-word;
 }
 
-#messages > li:nth-child(odd) {
-    background: #f1f1f1;
+#messages>li:nth-child(odd) {
+  background: #f1f1f1;
 }
 
 /* Form styles */
 #form {
-    background: #fff;
-    padding: 0.75rem;
-    display: flex;
-    height: auto;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  background: #fff;
+  padding: 0.75rem;
+  display: flex;
+  height: auto;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
 
 #input {
-    border: 1px solid #ddd;
-    padding: 0.75rem;
-    flex-grow: 1;
-    border-radius: 20px;
-    margin-right: 0.5rem;
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  flex-grow: 1;
+  border-radius: 20px;
+  margin-right: 0.5rem;
 }
 
 #input:focus {
-    outline: none;
-    border-color: #a1c4fd;
+  outline: none;
+  border-color: #a1c4fd;
 }
 
 /* System message styles */
 .system-message {
-    font-style: italic;
-    text-align: center;
-    color: #888;
-    background-color: transparent !important;
-    padding: 0.5rem;
+  font-style: italic;
+  text-align: center;
+  color: #888;
+  background-color: transparent !important;
+  padding: 0.5rem;
 }
 
-.system-message.error { color: #e74c3c; }
-.system-message.success { color: #2ecc71; }
-.system-message.info { color: #888; }
+.system-message.error {
+  color: #e74c3c;
+}
+
+.system-message.success {
+  color: #2ecc71;
+}
+
+.system-message.info {
+  color: #888;
+}
 
 /* Button styles */
-#form > button {
-    background: #a1c4fd;
-    border: none;
-    padding: 0 1.25rem;
-    border-radius: 20px;
-    cursor: pointer;
-    color: #333;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+#form>button {
+  background: #a1c4fd;
+  border: none;
+  padding: 0 1.25rem;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
 }
 
-#form > button:hover {
-    background: #8abcd1;
+#form>button:hover {
+  background: #8abcd1;
 }
 
 /* Connection status styles */
 #connection-status {
-    padding: 8px 15px;
-    font-size: 0.85em;
-    text-align: center;
-    font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 8px 15px;
+  font-size: 0.85em;
+  text-align: center;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .status-connecting {
-    background-color: #fff3cd;
-    color: #664d03;
+  background-color: #fff3cd;
+  color: #664d03;
 }
 
 .status-connected {
-    background-color: #d1e7dd;
-    color: #0f5132;
+  background-color: #d1e7dd;
+  color: #0f5132;
 }
 
 .status-disconnected {
-    background-color: #f8d7da;
-    color: #58151c;
+  background-color: #f8d7da;
+  color: #58151c;
 }
 
 /* Scrollbar styling */
@@ -127,16 +135,170 @@ body {
 }
 
 /* Responsive adjustments */
-@media (max-width: 600px) {
-  #messages > li {
-    padding: 0.4rem 0.8rem;
+/* Small phones (iPhone SE, small Android phones) */
+@media (max-width: 375px) {
+  body {
+    font-size: 14px;
   }
-  
+
+  #messages>li {
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.4rem;
+    border-radius: 8px;
+  }
+
+  #messages {
+    padding: 10px;
+  }
+
+  #form {
+    padding: 0.4rem;
+  }
+
+  #input {
+    padding: 0.5rem;
+    border-radius: 15px;
+    margin-right: 0.3rem;
+  }
+
+  #form>button {
+    padding: 0 0.8rem;
+    border-radius: 15px;
+    font-size: 0.9em;
+  }
+
+  #connection-status {
+    padding: 5px 10px;
+    font-size: 0.8em;
+  }
+}
+
+/* Regular smartphones (iPhone, Android phones) */
+@media (min-width: 376px) and (max-width: 480px) {
+  #messages>li {
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  #messages {
+    padding: 12px;
+  }
+
   #form {
     padding: 0.5rem;
   }
-  
+
   #input {
     padding: 0.6rem;
+    border-radius: 18px;
+  }
+
+  #form>button {
+    padding: 0 1rem;
+  }
+
+  #connection-status {
+    padding: 6px 12px;
+    font-size: 0.82em;
+  }
+}
+
+/* Large smartphones and small tablets (iPhone Plus, Pixel XL, etc) */
+@media (min-width: 481px) and (max-width: 767px) {
+  #messages>li {
+    padding: 0.45rem 0.9rem;
+  }
+
+  #form {
+    padding: 0.6rem;
+  }
+
+  #input {
+    padding: 0.65rem;
+  }
+}
+
+/* Tablets in portrait mode (iPad, Galaxy Tab, etc) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  body {
+    font-size: 16px;
+  }
+
+  #messages {
+    padding: 18px;
+  }
+
+  #messages>li {
+    padding: 0.6rem 1.2rem;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+  }
+
+  #form {
+    padding: 0.8rem;
+  }
+
+  #input {
+    padding: 0.8rem;
+    border-radius: 22px;
+    margin-right: 0.7rem;
+  }
+
+  #form>button {
+    padding: 0 1.4rem;
+    border-radius: 22px;
+  }
+}
+
+/* Tablets in landscape mode and small laptops */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  #messages {
+    padding: 20px;
+  }
+
+  #messages>li {
+    padding: 0.65rem 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+}
+
+/* Device orientation - landscape mode adjustments */
+@media (orientation: landscape) and (max-height: 600px) {
+  #messages {
+    padding: 10px 15px;
+  }
+
+  #messages>li {
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  #form {
+    padding: 0.5rem;
+  }
+
+  #input {
+    padding: 0.5rem;
+  }
+
+  /* Limited vertical space in landscape mode */
+  #connection-status {
+    padding: 4px 10px;
+    font-size: 0.8em;
+  }
+}
+
+/* iOS specific adjustments */
+@supports (-webkit-touch-callout: none) {
+
+  #input,
+  #form>button {
+    /* Prevent zoom on input focus on iOS */
+    font-size: 16px;
+  }
+
+  /* Fix for iOS viewport height issue */
+  body {
+    height: -webkit-fill-available;
   }
 }
