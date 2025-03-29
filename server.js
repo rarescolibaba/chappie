@@ -146,7 +146,9 @@ io.on('connection', (socket) => {
 
     socket.on('chat message', (msg) => {
         const { limited, clientData } = checkRateLimit(socket.id);
-        // Rate limiting check
+        
+        connectedClients.set(socket.id, clientData); 
+        
         if (limited) {
             console.warn(`Rate limit exceeded for socket: ${socket.id}`);
 
